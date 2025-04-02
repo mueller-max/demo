@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Car List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 800px;
+      padding: 20px;
+    }
+
+    .car-tile {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .car-tile:hover {
+      transform: scale(1.02);
+    }
+
+    .car-tile.selected {
+      border: 3px solid blue;
+      box-shadow: 0 0 10px blue;
+    }
+
+    .milestone-info {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #eef;
+      border-left: 4px solid #00f;
+      border-radius: 5px;
+    }
+
+    .milestone-reached {
+      color: #003366;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="carContainer"></div>
+
+  <script>
+    const cars = [
+      {
+        VIN: "1HGCM82633A123456",
+        model: "Honda Accord",
+        year: 2020,
+        price: "$25,000",
+        interiorColor: "Black",
+        exteriorColor: "White",
+        doors: 4,
+        soldDate: "2020-01-15",
+        deliveredDate: "2020-01-20"
+      },
+      {
+        VIN: "2T3ZF4DV3AW123456",
+        model: "Toyota RAV4",
+        year: 2021,
+        price: "$30,000",
+        interiorColor: "Gray",
+        exteriorColor: "Blue",
+        doors: 4,
+        soldDate: "2021-03-10",
+        deliveredDate: "2021-03-15"
+      },
+      {
+        VIN: "3VWFE21C04M123456",
+        model: "Volkswagen Golf",
+        year: 2024,
+        price: "$22,000",
+        interiorColor: "Beige",
+        exteriorColor: "Red",
+        doors: 4,
+        soldDate: "2024-12-01",
+        deliveredDate: "2025-01-01"
+      },
+      {
+        VIN: "4Y1SL65848Z123456",
+        model: "Chevrolet Malibu",
+        year: 2022,
+        price: "$27,500",
+        interiorColor: "Black",
+        exteriorColor: "Silver",
+        doors: 4,
+        soldDate: "2022-07-22",
+        deliveredDate: "2022-07-30"
+      },
+      {
+        VIN: "5N1AR2MMXDC123456",
+        model: "Nissan Pathfinder",
+        year: 2025,
+        price: "$35,000",
+        interiorColor: "Brown",
+        exteriorColor: "Gray",
+        doors: 4,
+        soldDate: "2025-03-15",
+        deliveredDate: "2025-03-20"
+      }
+    ];
+
+    function addMonths(date, months) {
+      const newDate = new Date(date);
+      newDate.setMonth(newDate.getMonth() + months);
+      return newDate;
+    }
+
+    function getMilestoneHTML(label, dateStr) {
+      const date = new Date(dateStr);
+      const today = new Date();
+      if (date <= today) {
+        return `<div class="milestone-reached">${label}: ${date.toISOString().split('T')[0]}</div>`;
+      } else {
+        return `<div>${label}</div>`;
+      }
+    }
+
+    function createCarTiles() {
+      const container = document.getElementById("carContainer");
+
+      cars.forEach(car => {
+        const tile = document.createElement("div");
+        tile.classList.add("car-tile");
+
+        tile.innerHTML = `
+          <strong>${car.model} (${car.year})</strong><br>
+          VIN: ${car.VIN}<br>
+          Price: ${car.price}<br>
+          Interior Color: ${car.interiorColor}<br>
+          Exterior Color: ${car.exteriorColor}<br>
+          Doors: ${car.doors}
+        `;
+
+        const milestoneDiv = document.createElement("div");
+        milestoneDiv.classList.add("milestone-info");
+        milestoneDiv.style.display = "none";
+        tile.appendChild(milestoneDiv);
+
+        tile.onclick = function () {
+          document.querySelectorAll('.car-tile').forEach(t => {
+            t.classList.remove('selected');
+            const info = t.querySelector('.milestone-info');
+            if (info) info.style.display = 'none';
+          });
+
+          tile.classList.add('selected');
+
+          const delivered = new Date(car.deliveredDate);
+
+          milestoneDiv.innerHTML = `
+            <strong>Service Milestones:</strong><br>
+            ${getMilestoneHTML("Sold Date", car.soldDate)}
+            ${getMilestoneHTML("Delivered Date", car.deliveredDate)}
+            ${getMilestoneHTML("3-Month Service", addMonths(delivered, 3).toISOString())}
+            ${getMilestoneHTML("6-Month Service", addMonths(delivered, 6).toISOString())}
+            ${getMilestoneHTML("1-Year Service", addMonths(delivered, 12).toISOString())}
+          `;
+
+          milestoneDiv.style.display = "block";
+        };
+
+        container.appendChild(tile);
+      });
+    }
+
+    createCarTiles();
+  </script>
+</body>
+</html>

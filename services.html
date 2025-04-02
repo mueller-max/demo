@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Service List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 800px;
+      padding: 20px;
+    }
+
+    .service-tile {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .service-tile:hover {
+      transform: scale(1.02);
+    }
+
+    .service-tile.selected {
+      border: 3px solid blue;
+      box-shadow: 0 0 10px blue;
+    }
+
+    .service-details {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #eef;
+      border-left: 4px solid #00f;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="serviceContainer"></div>
+
+  <script>
+    const services = [
+      { name: "Plus Service Package", durationHours: 4, price: "$300" },
+      { name: "Standard Service Package", durationHours: 3, price: "$200" },
+      { name: "Tire Alignment Check", durationHours: 1, price: "$50" },
+      { name: "Motor Cleaning", durationHours: 2, price: "$80" },
+      { name: "AC Check", durationHours: 1, price: "$60" },
+      { name: "Oil Change", durationHours: 1, price: "$40" }
+    ];
+
+    function createServiceTiles() {
+      const container = document.getElementById("serviceContainer");
+
+      services.forEach(service => {
+        const tile = document.createElement("div");
+        tile.classList.add("service-tile");
+
+        tile.innerHTML = `
+          <strong>${service.name}</strong><br>
+          Duration: ${service.durationHours} hour${service.durationHours > 1 ? 's' : ''}<br>
+          Price: ${service.price}
+        `;
+
+        const detailsDiv = document.createElement("div");
+        detailsDiv.classList.add("service-details");
+        detailsDiv.style.display = "none";
+        detailsDiv.innerHTML = `<em>Click again to hide details.</em>`;
+        tile.appendChild(detailsDiv);
+
+        tile.onclick = function () {
+          const isSelected = tile.classList.contains('selected');
+          document.querySelectorAll('.service-tile').forEach(t => {
+            t.classList.remove('selected');
+            const info = t.querySelector('.service-details');
+            if (info) info.style.display = 'none';
+          });
+
+          if (!isSelected) {
+            tile.classList.add('selected');
+            detailsDiv.style.display = 'block';
+          }
+        };
+
+        container.appendChild(tile);
+      });
+    }
+
+    createServiceTiles();
+  </script>
+</body>
+</html>

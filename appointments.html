@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Timeslot Selection</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      background-color: #f5f5f5;
+      padding-top: 40px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 800px;
+      padding: 20px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .controls input,
+    .controls select {
+      font-size: 16px;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      width: 48%;
+      box-sizing: border-box;
+    }
+
+    .timeslot-tile {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .timeslot-tile:hover {
+      transform: scale(1.02);
+    }
+
+    .timeslot-tile.selected {
+      border: 3px solid blue;
+      box-shadow: 0 0 10px blue;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="controls">
+      <input type="date" id="datePicker" />
+      <select id="locationSelect">
+        <option value="">Select a location</option>
+        <option value="riyadh">Riyadh Industrial Area</option>
+        <option value="dammam">Dammam Industrial Area</option>
+      </select>
+    </div>
+    <div id="timeslotContainer"></div>
+  </div>
+
+  <script>
+    const times = [];
+    for (let hour = 8; hour < 17; hour++) {
+      const start = String(hour).padStart(2, '0') + ':00';
+      const end = String(hour + 1).padStart(2, '0') + ':00';
+      times.push({ start, end });
+    }
+
+    function renderTimeslots() {
+      const container = document.getElementById("timeslotContainer");
+      container.innerHTML = '';
+
+      times.forEach(slot => {
+        const tile = document.createElement("div");
+        tile.classList.add("timeslot-tile");
+        tile.innerHTML = `<strong>${slot.start} - ${slot.end}</strong>`;
+
+        tile.onclick = function () {
+          document.querySelectorAll('.timeslot-tile').forEach(t => t.classList.remove('selected'));
+          tile.classList.add('selected');
+        };
+
+        container.appendChild(tile);
+      });
+    }
+
+    const locationSelect = document.getElementById("locationSelect");
+    const datePicker = document.getElementById("datePicker");
+
+    function tryRenderSlots() {
+      const location = locationSelect.value;
+      const date = datePicker.value;
+
+      const container = document.getElementById("timeslotContainer");
+      container.innerHTML = '';
+
+      if (location && date) {
+        renderTimeslots();
+      }
+    }
+
+    locationSelect.addEventListener("change", tryRenderSlots);
+    datePicker.addEventListener("change", tryRenderSlots);
+
+    // Don't render anything on load
+  </script>
+</body>
+</html>

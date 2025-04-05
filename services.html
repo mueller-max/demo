@@ -64,35 +64,34 @@
       { name: "Oil Change", durationHours: 1, price: "$40" }
     ];
 
-    const endpointUrl = "https://hmmh-integration-suite-212fgrvq.it-cpi018-rt.cfapps.eu10-003.hana.ondemand.com/http/savemashupselectiondata"; // Replace with your API
-    const username = "sb-5897a851-074e-4c7d-a77f-bebb10b88a47!b548559|it-rt-hmmh-integration-suite-212fgrvq!b117912";
-    const password = "ebc1f94b-42e9-449e-83a3-34bc305a69ba$tTgvF803MTL7n2zJ297jRyo_RmNtn8PM-xcq1Dx3-yk=";
+    const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
 
     function sendServiceData(service) {
       const payload = {
         serviceName: service.name,
         duration: service.durationHours,
-        price: service.price.replace('$', '') // Convert price string to numeric (if needed)
+        price: service.price.replace('$', '') // Convert price string to numeric
       };
-
-      const headers = new Headers();
-      headers.set("Authorization", "Basic " + btoa(username + ":" + password));
-      headers.set("Content-Type", "application/json");
 
       fetch(endpointUrl, {
         method: "POST",
-        headers: headers,
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify(payload)
       })
-        .then(response => response.json())
-        .then(data => {
-          console.log("Success:", data);
-          alert("Service sent successfully!");
-        })
-        .catch(error => {
-          console.error("Error:", error);
-          alert("Failed to send service data.");
-        });
+      .then(response => {
+        if (!response.ok) throw new Error("Network response was not ok");
+        return response.json();
+      })
+      .then(data => {
+        console.log("Success:", data);
+        alert("Service sent successfully!");
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("Failed to send service data.");
+      });
     }
 
     function createServiceTiles() {
@@ -135,5 +134,3 @@
 
     createServiceTiles();
   </script>
-</body>
-</html>

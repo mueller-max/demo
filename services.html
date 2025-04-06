@@ -55,7 +55,6 @@
 <body>
   <div class="container" id="serviceContainer"></div>
   <button id="submitButton">Submit Selected Services</button>
-  
   <script>
     // 1) Services with default prices
     const services = [
@@ -66,9 +65,9 @@
       { target: "carservices", name: "AC Check", durationHours: 1, price: "$60" },
       { target: "carservices", name: "Oil Change", durationHours: 1, price: "$40" }
     ];
-    
+
     const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
-    
+
     // 2) On page load, fetch the "pricecheck" data
     //    Expected response: e.g. [{"name": "Plus Service Package", "price": "FREE"}, ...]
     function loadPricesOnPageLoad() {
@@ -82,8 +81,8 @@
         return response.json();
       });
     }
-    
-    // Helper function to convert the incoming array into a price mapping object
+
+    // Convert incoming array to a mapping object: { "Plus Service Package": "FREE", ... }
     function buildPriceMap(priceArray) {
       const priceMap = {};
       priceArray.forEach(pkg => {
@@ -91,42 +90,39 @@
       });
       return priceMap;
     }
-    
+
     // 3) Create tiles after we have the latest prices
     function createServiceTiles(priceListArray) {
-      // Build mapping from package names to price values
       const priceMap = buildPriceMap(priceListArray);
-      
       const container = document.getElementById("serviceContainer");
       container.innerHTML = "";
-      
+
       services.forEach(service => {
-        // Override price if found in priceMap; otherwise, fallback to original numeric part
+        // Override price if available; fallback to numeric part of service.price
         const updatedPrice = priceMap[service.name] || service.price.replace('$', '');
         service.updatedPrice = updatedPrice;
-    
-        // Create tile element
+
+        // Build the tile
         const tile = document.createElement("div");
         tile.classList.add("service-tile");
-        // Store service data reference on the tile for later use
+        // Store the service data for later use
         tile.serviceData = service;
-    
+
         tile.innerHTML = `
           <strong>${service.name}</strong><br>
           Duration: ${service.durationHours} hour${service.durationHours > 1 ? 's' : ''}<br>
           Price: $${updatedPrice}
         `;
-    
-        // Hidden details area (could include more info if needed)
+
+        // Hidden details area
         const detailsDiv = document.createElement("div");
         detailsDiv.classList.add("service-details");
         detailsDiv.style.display = "none";
         detailsDiv.innerHTML = `<em>Click tile to toggle selection.</em>`;
         tile.appendChild(detailsDiv);
-    
-        // 3c) On tile click, toggle selection state (allowing multiple selections)
+
+        // 3c) On tile click: toggle the selected state (allowing multiple selections)
         tile.onclick = function () {
-          // Toggle the selected class
           tile.classList.toggle('selected');
           // Toggle detail display based on selection
           if (tile.classList.contains('selected')) {
@@ -135,19 +131,17 @@
             detailsDiv.style.display = 'none';
           }
         };
-    
+
         container.appendChild(tile);
       });
     }
-    
-    // 4) Submit selected services data to endpoint
+
+    // 4) Submit selected services to endpoint
     function submitSelectedServices() {
-      // Gather all tiles with the "selected" class
       const selectedTiles = document.querySelectorAll('.service-tile.selected');
       const payloadArray = [];
-    
+      
       selectedTiles.forEach(tile => {
-        // Retrieve service data from the tile
         const service = tile.serviceData;
         payloadArray.push({
           target: service.target,
@@ -156,13 +150,12 @@
           price: service.updatedPrice
         });
       });
-    
+      
       if (payloadArray.length === 0) {
         alert("No service selected.");
         return;
       }
-    
-      // Send the aggregated payload as a JSON array
+      
       fetch(endpointUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -181,8 +174,8 @@
         alert("Error submitting selected services: " + error.message);
       });
     }
-    
-    // 5) Initialize page by loading prices and then creating tiles
+
+    // 5) Initialize page: fetch pricecheck then create tiles
     function initPage() {
       loadPricesOnPageLoad()
         .then(priceList => {
@@ -194,7 +187,7 @@
             `<p style="color:red;">Failed to load price data: ${err.message}</p>`;
         });
     }
-    
+
     // Attach event listener to submit button
     document.getElementById("submitButton").addEventListener("click", submitSelectedServices);
     

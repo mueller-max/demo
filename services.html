@@ -61,7 +61,8 @@
 
     const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
 
-    // 2) Fetch price data on page load
+    // 2) On page load, fetch the "pricecheck" data
+    // Expected response: e.g. [{"name": "Plus Service Package", "price": "FREE"}, ...]
     function loadPricesOnPageLoad() {
       return fetch(endpointUrl, {
         method: "POST",
@@ -90,15 +91,14 @@
       container.innerHTML = "";
 
       services.forEach(service => {
-        // Override price if found; otherwise fallback to original numeric part (without $)
+        // Override price if found; fallback to the original numeric part (without $)
         const updatedPrice = priceMap[service.name] || service.price.replace('$', '');
         service.updatedPrice = updatedPrice;
 
         // Build tile
         const tile = document.createElement("div");
         tile.classList.add("service-tile");
-        // Attach service data for later use
-        tile.serviceData = service;
+        tile.serviceData = service; // attach service data for later use
 
         tile.innerHTML = `
           <strong>${service.name}</strong><br>
@@ -106,19 +106,18 @@
           Price: $${updatedPrice}
         `;
 
-        // Hidden details area (could display extra info)
+        // Hidden details area
         const detailsDiv = document.createElement("div");
         detailsDiv.classList.add("service-details");
         detailsDiv.style.display = "none";
         detailsDiv.innerHTML = `<em>Click tile to toggle selection.</em>`;
         tile.appendChild(detailsDiv);
 
-        // On tile click: toggle selection, then send selected data
+        // On tile click: toggle selection without deselecting others
         tile.onclick = function () {
-          // Toggle selection for this tile without affecting others
           tile.classList.toggle('selected');
           detailsDiv.style.display = tile.classList.contains('selected') ? 'block' : 'none';
-          // After toggling, send the currently selected tiles data
+          // After toggling, send the currently selected services data
           sendSelectedServices();
         };
 
@@ -126,7 +125,7 @@
       });
     }
 
-    // 4) Gather all selected services and send them as a JSON array to the endpoint
+    // 4) Gather all selected services and send them as JSON (wrapped in an object) to the endpoint
     function sendSelectedServices() {
       const selectedTiles = document.querySelectorAll('.service-tile.selected');
       const payloadArray = [];
@@ -146,11 +145,13 @@
         return;
       }
       
-      // Send the selected services data
+      // Wrap the array in an object so the JSON starts with { }
+      const finalPayload = { value: payloadArray };
+      
       fetch(endpointUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payloadArray)
+        body: JSON.stringify(finalPayload)
       })
       .then(response => {
         if (!response.ok) throw new Error("Failed to send selected service data");

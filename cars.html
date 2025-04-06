@@ -87,26 +87,6 @@
       });
     }
 
-    // Helper: add X months to date
-    function addMonths(date, months) {
-      const newDate = new Date(date);
-      newDate.setMonth(newDate.getMonth() + months);
-      return newDate;
-    }
-
-    // Helper: label + date, green if date <= today
-    function getMilestoneHTML(label, dateStr) {
-      const date = new Date(dateStr);
-      const today = new Date();
-      const iso = date.toISOString().split('T')[0];
-      if (date <= today) {
-        return `<div class="milestone-reached">${label}: ${iso}</div>`;
-      } else {
-        return `<div>${label}: ${iso}</div>`;
-      }
-    }
-
-    // 2) Create tiles from 'cars' array
     function createCarTiles() {
       const container = document.getElementById("carContainer");
       container.innerHTML = "";
@@ -115,23 +95,22 @@
         const tile = document.createElement("div");
         tile.classList.add("car-tile");
 
-        // Basic info
+        // Basic info from the new JSON structure
         tile.innerHTML = `
-          <strong>${car.model} (${car.year})</strong><br>
-          VIN: ${car.VIN}<br>
-          Price: ${car.price}<br>
-          Interior Color: ${car.interiorColor}<br>
-          Exterior Color: ${car.exteriorColor}<br>
-          Doors: ${car.doors}
+          <strong>${car.productName}</strong><br>
+          Product ID: ${car.registeredProductId}<br>
+          VIN: ${car.vin}<br>
+          Owner: ${car.ownerName}<br>
+          Status: ${car.status}<br>
+          Warranty Active: ${car.warranty ? "Yes" : "No"}
         `;
 
-        // Hidden milestone info
-        const milestoneDiv = document.createElement("div");
-        milestoneDiv.classList.add("milestone-info");
-        milestoneDiv.style.display = "none";
-        tile.appendChild(milestoneDiv);
+        // We'll just keep a "more info" div, if you want it later
+        const detailDiv = document.createElement("div");
+        detailDiv.classList.add("milestone-info");
+        detailDiv.style.display = "none";
+        tile.appendChild(detailDiv);
 
-        // On-click logic
         tile.onclick = function () {
           // Deselect others
           document.querySelectorAll('.car-tile').forEach(t => {
@@ -142,27 +121,18 @@
 
           tile.classList.add('selected');
 
-          // Build milestone info
-          const delivered = new Date(car.deliveredDate);
-          milestoneDiv.innerHTML = `
-            <strong>Service Milestones:</strong><br>
-            ${getMilestoneHTML("Sold Date", car.soldDate)}
-            ${getMilestoneHTML("Delivered Date", car.deliveredDate)}
-            ${getMilestoneHTML("3-Month Service", addMonths(delivered, 3).toISOString())}
-            ${getMilestoneHTML("6-Month Service", addMonths(delivered, 6).toISOString())}
-            ${getMilestoneHTML("1-Year Service", addMonths(delivered, 12).toISOString())}
-          `;
-          milestoneDiv.style.display = "block";
+          // Show detail (if needed)
+          detailDiv.innerHTML = `<strong>Additional Details:</strong><br>
+           <em>No extra date info in the new JSON</em>`;
+          detailDiv.style.display = "block";
 
-          // 3) **Extra step**: POST selection to Worker
+          // Example: POST selection to Worker
           fetch(endpointUrl, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               target: "saveselectiondata",
-              carId: car.VIN  // or any unique ID you want
+              carId: car.vin // unique ID
             })
           })
           .then(res => {

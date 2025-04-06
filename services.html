@@ -53,7 +53,6 @@
 </head>
 <body>
   <div class="container" id="serviceContainer"></div>
-
   <script>
     // 1) Services with default prices
     const services = [
@@ -68,6 +67,8 @@
     const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
 
     // 2) On page load, fetch the "pricecheck" data
+    //    This returns something like:
+    //    { "Plus Service Package": "FREE", "Standard Service Package": "100" }
     function loadPricesOnPageLoad() {
       return fetch(endpointUrl, {
         method: "POST",
@@ -85,29 +86,32 @@
       const container = document.getElementById("serviceContainer");
       container.innerHTML = "";
 
+      // 3a) Update our services with any new price from priceList
       services.forEach(service => {
-        // (A) If priceList has a new price, override
+        // If priceList has a new price, override
+        // If not found in priceList, fallback to the original numeric part of the service.price
         const updatedPrice = priceList[service.name] || service.price.replace('$', '');
-        // We'll store the final numeric string in service object
-        service.updatedPrice = updatedPrice;
+        service.updatedPrice = updatedPrice; // store it for later
 
-        // (B) Build tile
+        // 3b) Build the tile
         const tile = document.createElement("div");
         tile.classList.add("service-tile");
 
+        // Display name, duration, final price
         tile.innerHTML = `
           <strong>${service.name}</strong><br>
           Duration: ${service.durationHours} hour${service.durationHours > 1 ? 's' : ''}<br>
           Price: $${updatedPrice}
         `;
 
+        // Hidden details area
         const detailsDiv = document.createElement("div");
         detailsDiv.classList.add("service-details");
         detailsDiv.style.display = "none";
         detailsDiv.innerHTML = `<em>Click again to hide details.</em>`;
         tile.appendChild(detailsDiv);
 
-        // (C) On tile click => send final data
+        // 3c) On tile click => highlight + send final data
         tile.onclick = function () {
           const isSelected = tile.classList.contains('selected');
           document.querySelectorAll('.service-tile').forEach(t => {
@@ -130,9 +134,7 @@
 
             fetch(endpointUrl, {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload)
             })
             .then(response => {
@@ -152,7 +154,7 @@
       });
     }
 
-    // 5) On page load, first fetch the "pricecheck", then create tiles
+    // 5) On page load: fetch pricecheck, then create tiles
     function initPage() {
       loadPricesOnPageLoad()
         .then(priceList => {
@@ -160,7 +162,8 @@
         })
         .catch(err => {
           console.error("Error loading price data on init:", err);
-          document.getElementById("serviceContainer").innerHTML = `<p style="color:red;">Failed to load price data: ${err.message}</p>`;
+          document.getElementById("serviceContainer").innerHTML =
+            `<p style="color:red;">Failed to load price data: ${err.message}</p>`;
         });
     }
 

@@ -14,7 +14,6 @@
       background-color: #f5f5f5;
       padding-top: 40px;
     }
-
     .container {
       display: flex;
       flex-direction: column;
@@ -22,7 +21,6 @@
       max-width: 800px;
       padding: 20px;
     }
-
     .controls {
       display: flex;
       justify-content: space-between;
@@ -30,7 +28,6 @@
       margin-bottom: 20px;
       flex-wrap: wrap;
     }
-
     .controls input,
     .controls select {
       font-size: 16px;
@@ -40,7 +37,6 @@
       width: 48%;
       box-sizing: border-box;
     }
-
     .timeslot-tile {
       background: white;
       padding: 15px;
@@ -51,11 +47,9 @@
       width: 100%;
       margin-bottom: 15px;
     }
-
     .timeslot-tile:hover {
       transform: scale(1.02);
     }
-
     .timeslot-tile.selected {
       border: 3px solid blue;
       box-shadow: 0 0 10px blue;
@@ -76,6 +70,7 @@
   </div>
 
   <script>
+    // Build an array of timeslots from 08:00 to 17:00
     const times = [];
     for (let hour = 8; hour < 17; hour++) {
       const start = String(hour).padStart(2, '0') + ':00';
@@ -83,18 +78,58 @@
       times.push({ start, end });
     }
 
+    // Render timeslots after a date and location are selected.
     function renderTimeslots() {
       const container = document.getElementById("timeslotContainer");
       container.innerHTML = '';
 
-      times.forEach(slot => {
+      // Randomly filter out some timeslots.
+      const availableTimes = times.filter(() => Math.random() > 0.5);
+      
+      // Ensure at least one timeslot is available.
+      if (availableTimes.length === 0) {
+        availableTimes.push(times[Math.floor(Math.random() * times.length)]);
+      }
+      
+      availableTimes.forEach(slot => {
         const tile = document.createElement("div");
         tile.classList.add("timeslot-tile");
         tile.innerHTML = `<strong>${slot.start} - ${slot.end}</strong>`;
-
+        
         tile.onclick = function () {
+          // For single timeslot selection, clear any previous selection.
           document.querySelectorAll('.timeslot-tile').forEach(t => t.classList.remove('selected'));
           tile.classList.add('selected');
+          
+          // Construct the payload with selected date, location, and timeslot.
+          const date = document.getElementById("datePicker").value;
+          const location = document.getElementById("locationSelect").value;
+          const payload = {
+            target: "timeslot",
+            date: date,
+            location: location,
+            timeslot: {
+              start: slot.start,
+              end: slot.end
+            }
+          };
+          
+          // Send payload to the endpoint
+          fetch("https://broad-moon-472d.devin-mex.workers.dev/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          })
+          .then(response => {
+            if (!response.ok) throw new Error("Failed to send timeslot data");
+            return response.json();
+          })
+          .then(data => {
+            console.log("Timeslot data sent successfully:", data);
+          })
+          .catch(error => {
+            console.error("Error sending timeslot data:", error);
+          });
         };
 
         container.appendChild(tile);
@@ -104,6 +139,7 @@
     const locationSelect = document.getElementById("locationSelect");
     const datePicker = document.getElementById("datePicker");
 
+    // When date or location changes, attempt to render timeslots.
     function tryRenderSlots() {
       const location = locationSelect.value;
       const date = datePicker.value;
@@ -118,8 +154,6 @@
 
     locationSelect.addEventListener("change", tryRenderSlots);
     datePicker.addEventListener("change", tryRenderSlots);
-
-    // Don't render anything on load
   </script>
 </body>
 </html>

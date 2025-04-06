@@ -60,87 +60,62 @@
   <div class="container" id="carContainer"></div>
 
   <script>
-    const cars = [
-      {
-        VIN: "1HGCM82633A123456",
-        model: "Honda Accord",
-        year: 2020,
-        price: "$25,000",
-        interiorColor: "Black",
-        exteriorColor: "White",
-        doors: 4,
-        soldDate: "2020-01-15",
-        deliveredDate: "2020-01-20"
-      },
-      {
-        VIN: "2T3ZF4DV3AW123456",
-        model: "Toyota RAV4",
-        year: 2021,
-        price: "$30,000",
-        interiorColor: "Gray",
-        exteriorColor: "Blue",
-        doors: 4,
-        soldDate: "2021-03-10",
-        deliveredDate: "2021-03-15"
-      },
-      {
-        VIN: "3VWFE21C04M123456",
-        model: "Volkswagen Golf",
-        year: 2024,
-        price: "$22,000",
-        interiorColor: "Beige",
-        exteriorColor: "Red",
-        doors: 4,
-        soldDate: "2024-12-01",
-        deliveredDate: "2025-01-01"
-      },
-      {
-        VIN: "4Y1SL65848Z123456",
-        model: "Chevrolet Malibu",
-        year: 2022,
-        price: "$27,500",
-        interiorColor: "Black",
-        exteriorColor: "Silver",
-        doors: 4,
-        soldDate: "2022-07-22",
-        deliveredDate: "2022-07-30"
-      },
-      {
-        VIN: "5N1AR2MMXDC123456",
-        model: "Nissan Pathfinder",
-        year: 2025,
-        price: "$35,000",
-        interiorColor: "Brown",
-        exteriorColor: "Gray",
-        doors: 4,
-        soldDate: "2025-03-15",
-        deliveredDate: "2025-03-20"
-      }
-    ]; 
+    const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
+    let cars = [];
 
+    // 1) On page load, fetch array of cars
+    function loadCars() {
+      fetch(endpointUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target: "cars" })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to load cars");
+        }
+        return response.json();
+      })
+      .then(data => {
+        cars = data;
+        createCarTiles();
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        document.getElementById("carContainer").innerHTML =
+          `<p style="color:red;">Error loading cars: ${error.message}</p>`;
+      });
+    }
+
+    // Helper: add X months to date
     function addMonths(date, months) {
       const newDate = new Date(date);
       newDate.setMonth(newDate.getMonth() + months);
       return newDate;
     }
 
+    // Helper: label + date, green if date <= today
     function getMilestoneHTML(label, dateStr) {
       const date = new Date(dateStr);
       const today = new Date();
+      const iso = date.toISOString().split('T')[0];
       if (date <= today) {
-        return `<div class="milestone-reached">${label}: ${date.toISOString().split('T')[0]}</div>`;
+        return `<div class="milestone-reached">${label}: ${iso}</div>`;
       } else {
-        return `<div>${label}</div>`;
+        return `<div>${label}: ${iso}</div>`;
       }
     }
 
+    // 2) Create tiles from 'cars' array
     function createCarTiles() {
       const container = document.getElementById("carContainer");
+      container.innerHTML = "";
 
       cars.forEach(car => {
         const tile = document.createElement("div");
         tile.classList.add("car-tile");
 
+        // Basic info
         tile.innerHTML = `
           <strong>${car.model} (${car.year})</strong><br>
           VIN: ${car.VIN}<br>
@@ -150,12 +125,15 @@
           Doors: ${car.doors}
         `;
 
+        // Hidden milestone info
         const milestoneDiv = document.createElement("div");
         milestoneDiv.classList.add("milestone-info");
         milestoneDiv.style.display = "none";
         tile.appendChild(milestoneDiv);
 
+        // On-click logic
         tile.onclick = function () {
+          // Deselect others
           document.querySelectorAll('.car-tile').forEach(t => {
             t.classList.remove('selected');
             const info = t.querySelector('.milestone-info');
@@ -164,8 +142,8 @@
 
           tile.classList.add('selected');
 
+          // Build milestone info
           const delivered = new Date(car.deliveredDate);
-
           milestoneDiv.innerHTML = `
             <strong>Service Milestones:</strong><br>
             ${getMilestoneHTML("Sold Date", car.soldDate)}
@@ -174,15 +152,39 @@
             ${getMilestoneHTML("6-Month Service", addMonths(delivered, 6).toISOString())}
             ${getMilestoneHTML("1-Year Service", addMonths(delivered, 12).toISOString())}
           `;
-
           milestoneDiv.style.display = "block";
+
+          // 3) **Extra step**: POST selection to Worker
+          fetch(endpointUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              target: "saveselectiondata",
+              carId: car.VIN  // or any unique ID you want
+            })
+          })
+          .then(res => {
+            if (!res.ok) {
+              throw new Error("Failed to save selection data");
+            }
+            return res.json();
+          })
+          .then(data => {
+            console.log("Selection saved:", data);
+          })
+          .catch(err => {
+            console.error("Error saving selection data:", err);
+          });
         };
 
         container.appendChild(tile);
       });
     }
 
-    createCarTiles();
+    // 4) On page load, fetch cars
+    loadCars();
   </script>
 </body>
 </html>

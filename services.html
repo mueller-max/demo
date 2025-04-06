@@ -55,82 +55,101 @@
   <div class="container" id="serviceContainer"></div>
 
   <script>
-    const services = [
-      { name: "Plus Service Package", durationHours: 4, price: "$300" },
-      { name: "Standard Service Package", durationHours: 3, price: "$200" },
-      { name: "Tire Alignment Check", durationHours: 1, price: "$50" },
-      { name: "Motor Cleaning", durationHours: 2, price: "$80" },
-      { name: "AC Check", durationHours: 1, price: "$60" },
-      { name: "Oil Change", durationHours: 1, price: "$40" }
-    ];
+  const services = [
+    { target: "carservices", name: "Plus Service Package", durationHours: 1, price: "$300" },
+    { target: "carservices", name: "Standard Service Package", durationHours: 1, price: "$200" },
+    { target: "carservices", name: "Tire Alignment Check", durationHours: 1, price: "$50" },
+    { target: "carservices", name: "Motor Cleaning", durationHours: 1, price: "$80" },
+    { target: "carservices", name: "AC Check", durationHours: 1, price: "$60" },
+    { target: "carservices", name: "Oil Change", durationHours: 1, price: "$40" }
+  ];
 
-    const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
+  const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
 
-    function sendServiceData(service) {
+  function sendServiceData(service) {
+    // Step 1: fetch latest prices from same Worker using target = "pricecheck"
+    fetch(endpointUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ target: "pricecheck" })
+    })
+    .then(response => {
+      if (!response.ok) throw new Error("Failed to fetch prices");
+      return response.json();
+    })
+    .then(priceList => {
+      // Step 2: update price from fetched data or fallback
+      const updatedPrice = priceList[service.name] || service.price.replace('$', '');
+
       const payload = {
+        target: service.target,
         serviceName: service.name,
         duration: service.durationHours,
-        price: service.price.replace('$', '') // Convert price string to numeric
+        price: updatedPrice
       };
 
-      fetch(endpointUrl, {
+      // Step 3: send service data with updated price
+      return fetch(endpointUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify(payload)
-      })
-      .then(response => {
-        if (!response.ok) throw new Error("Network response was not ok");
-        return response.json();
-      })
-      .then(data => {
-        console.log("Success:", data);
-        alert("Service sent successfully!");
-      })
-      .catch(error => {
-        console.error("Error:", error);
-        alert("Failed to send service data.");
       });
-    }
+    })
+    .then(response => {
+      if (!response.ok) throw new Error("Failed to send service data");
+      return response.json();
+    })
+    .then(data => {
+      console.log("Success:", data);
+    })
+    .catch(error => {
+      console.error("Error:", error);
+    });
+  }
 
-    function createServiceTiles() {
-      const container = document.getElementById("serviceContainer");
+  function createServiceTiles() {
+    const container = document.getElementById("serviceContainer");
 
-      services.forEach(service => {
-        const tile = document.createElement("div");
-        tile.classList.add("service-tile");
+    services.forEach(service => {
+      const tile = document.createElement("div");
+      tile.classList.add("service-tile");
 
-        tile.innerHTML = `
-          <strong>${service.name}</strong><br>
-          Duration: ${service.durationHours} hour${service.durationHours > 1 ? 's' : ''}<br>
-          Price: ${service.price}
-        `;
+      tile.innerHTML = `
+        <strong>${service.name}</strong><br>
+        Duration: ${service.durationHours} hour${service.durationHours > 1 ? 's' : ''}<br>
+        Price: ${service.price}
+      `;
 
-        const detailsDiv = document.createElement("div");
-        detailsDiv.classList.add("service-details");
-        detailsDiv.style.display = "none";
-        detailsDiv.innerHTML = `<em>Click again to hide details.</em>`;
-        tile.appendChild(detailsDiv);
+      const detailsDiv = document.createElement("div");
+      detailsDiv.classList.add("service-details");
+      detailsDiv.style.display = "none";
+      detailsDiv.innerHTML = `<em>Click again to hide details.</em>`;
+      tile.appendChild(detailsDiv);
 
-        tile.onclick = function () {
-          const isSelected = tile.classList.contains('selected');
-          document.querySelectorAll('.service-tile').forEach(t => {
-            t.classList.remove('selected');
-            const info = t.querySelector('.service-details');
-            if (info) info.style.display = 'none';
-          });
+      tile.onclick = function () {
+        const isSelected = tile.classList.contains('selected');
+        document.querySelectorAll('.service-tile').forEach(t => {
+          t.classList.remove('selected');
+          const info = t.querySelector('.service-details');
+          if (info) info.style.display = 'none';
+        });
 
-          if (!isSelected) {
-            tile.classList.add('selected');
-            detailsDiv.style.display = 'block';
-            sendServiceData(service); // Send data when tile is selected
-          }
-        };
+        if (!isSelected) {
+          tile.classList.add('selected');
+          detailsDiv.style.display = 'block';
+          sendServiceData(service); // ✅ This triggers the price check + data send
+        }
+      };
 
-        container.appendChild(tile);
-      });
-    }
+      container.appendChild(tile);
+    });
+  }
 
-    createServiceTiles();
-  </script>
+  // Initialize everything
+  createServiceTiles();
+</script>
+

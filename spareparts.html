@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Car Parts Inventory</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #2196f3, #64b5f6);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #1976d2;
+      color: #fff;
+    }
+    tr.selected {
+      background-color: #e3f2fd;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    img {
+      width: 80px;
+      height: 80px;
+      border-radius: 5px;
+      object-fit: cover;
+    }
+    button {
+      display: block;
+      background-color: #1976d2;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0 auto;
+    }
+    button:hover {
+      background-color: #1565c0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Car Parts Inventory</h1>
+    <table id="inventoryTable">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Part Name</th>
+          <th>Part Number</th>
+          <th>Quantity In Stock</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Inventory rows will be inserted here -->
+      </tbody>
+    </table>
+    <button id="orderButton">Order Out-of-Stock Parts</button>
+  </div>
+  <script>
+    // Helper function to generate a random quantity between 1 and 7
+    function randomQuantity() {
+      return Math.floor(Math.random() * 7) + 1;
+    }
+    
+    // Sample inventory data for car parts with hardcoded placeholder image URLs
+    const parts = [
+      { partName: "Brake Pads", partNumber: "10000041", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Brake+Pads" },
+      { partName: "Oil Filter", partNumber: "10000031", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Oil+Filter" },
+      { partName: "Air Filter", partNumber: "10000032", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Air+Filter" },
+      { partName: "Spark Plugs", partNumber: "5003", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Spark+Plugs" },
+      { partName: "Car Battery", partNumber: "10000042", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Wiper" },
+      { partName: "Kitoil", partNumber: "5002", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Headlight" },
+      { partName: "Pad KIT Disc Brake", partNumber: "5001", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Battery" },
+    ];
+
+    // Render inventory table with auto-selection for parts with quantity < 4
+    function renderInventory() {
+      const tbody = document.getElementById("inventoryTable").querySelector("tbody");
+      tbody.innerHTML = "";
+      
+      parts.forEach(part => {
+        const tr = document.createElement("tr");
+        // Auto-select if quantity is less than 4
+        if (part.quantity < 4) {
+          tr.classList.add("selected");
+        }
+        // Allow user to toggle selection on click
+        tr.onclick = function() {
+          tr.classList.toggle("selected");
+        };
+        tr.innerHTML = `
+          <td><img src="${part.imageUrl}" alt="${part.partName}"></td>
+          <td>${part.partName}</td>
+          <td>${part.partNumber}</td>
+          <td>${part.quantity}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    
+    // Filter parts that are marked as selected in the table (auto-selected or toggled by user)
+    function getPartsToOrder() {
+      const selectedRows = document.querySelectorAll("#inventoryTable tbody tr.selected");
+      const partsToOrder = [];
+      selectedRows.forEach(row => {
+        const cells = row.querySelectorAll("td");
+        partsToOrder.push({
+          partName: cells[1].innerText,
+          partNumber: cells[2].innerText,
+          quantity: cells[3].innerText
+        });
+      });
+      return partsToOrder;
+    }
+    
+    // Send order request to the endpoint with wrapped JSON payload
+    function sendOrderRequest(orderData) {
+      const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
+      const payload = {
+        target: "spareparts",
+        value: orderData
+      };
+      
+      fetch(endpointUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to send order request");
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log("Order request sent successfully:", data);
+        alert("Order request sent successfully!");
+      })
+      .catch(error => {
+        console.error("Error sending order request:", error);
+        alert("Error sending order request: " + error.message);
+      });
+    }
+    
+    // Attach event listener to the order button to send selected parts data
+    document.getElementById("orderButton").addEventListener("click", () => {
+      const partsToOrder = getPartsToOrder();
+      if (partsToOrder.length === 0) {
+        alert("All parts are sufficiently stocked.");
+        return;
+      }
+      sendOrderRequest(partsToOrder);
+    });
+    
+    // Render the inventory on page load
+    renderInventory();
+  </script>
+</body>
+</html>

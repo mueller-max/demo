@@ -176,6 +176,20 @@
       { partName: "Pad KIT Disc Brake", partNumber: "5001", quantity: randomQuantity(), imageUrl: "https://m.media-amazon.com/images/I/71sD9hQVMBL._AC_UF894,1000_QL80_.jpg" },
     ];
 
+    function updateLowStockBadge(cell, quantity) {
+      let badge = cell.querySelector(".low-stock-badge");
+      if (quantity < 4) {
+        if (!badge) {
+          badge = document.createElement("span");
+          badge.className = "low-stock-badge";
+          badge.innerText = "Low Stock";
+          cell.appendChild(badge);
+        }
+      } else {
+        if (badge) badge.remove();
+      }
+    }
+
     function renderInventory() {
       const tbody = document.getElementById("inventoryTable").querySelector("tbody");
       tbody.innerHTML = "";
@@ -191,7 +205,7 @@
           <td>${part.partName}</td>
           <td>${part.partNumber}</td>
           <td class="stock">
-            ${part.quantity}
+            <span class="quantity-value">${part.quantity}</span>
             ${isLowStock ? '<span class="low-stock-badge">Low Stock</span>' : ''}
           </td>
           <td>
@@ -215,10 +229,13 @@
         decreaseBtn.addEventListener("click", (event) => {
           event.stopPropagation();
           const currentCount = parseInt(countSpan.innerText);
-          const currentStock = parseInt(stockCell.innerText);
+          const quantitySpan = stockCell.querySelector(".quantity-value");
+          let currentStock = parseInt(quantitySpan.innerText);
+
           if (currentCount > 0) {
             countSpan.innerText = currentCount - 1;
-            stockCell.innerText = currentStock + 1;
+            quantitySpan.innerText = ++currentStock;
+            updateLowStockBadge(stockCell, currentStock);
             saveServiceItems(getServiceItems());
           }
         });
@@ -226,10 +243,13 @@
         increaseBtn.addEventListener("click", (event) => {
           event.stopPropagation();
           const currentCount = parseInt(countSpan.innerText);
-          const currentStock = parseInt(stockCell.innerText);
+          const quantitySpan = stockCell.querySelector(".quantity-value");
+          let currentStock = parseInt(quantitySpan.innerText);
+
           if (currentStock > 0) {
             countSpan.innerText = currentCount + 1;
-            stockCell.innerText = currentStock - 1;
+            quantitySpan.innerText = --currentStock;
+            updateLowStockBadge(stockCell, currentStock);
             saveServiceItems(getServiceItems());
           }
         });

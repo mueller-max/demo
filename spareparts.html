@@ -197,8 +197,6 @@
         const tr = document.createElement("tr");
         const isLowStock = part.quantity < 4;
 
-        tr.onclick = () => tr.classList.toggle("selected");
-
         tr.innerHTML = `
           <td><img src="${part.imageUrl}" alt="${part.partName}"></td>
           <td>${part.partName}</td>
@@ -255,17 +253,24 @@
       });
     }
 
-    function getPartsToOrder() {
-      const selectedRows = document.querySelectorAll("#inventoryTable tbody tr.selected");
-      return Array.from(selectedRows).map(row => {
-        const cells = row.querySelectorAll("td");
-        return {
-          partName: cells[1].innerText,
-          partNumber: cells[2].innerText,
-          quantity: cells[3].innerText
-        };
-      });
-    }
+	function getPartsToOrder() {
+	  const allRows = document.querySelectorAll("#inventoryTable tbody tr");
+	  return Array.from(allRows).reduce((lowStockParts, row) => {
+		const quantitySpan = row.querySelector(".quantity-value");
+		const quantity = parseInt(quantitySpan.innerText);
+
+		if (quantity < 4) {
+		  const cells = row.querySelectorAll("td");
+		  lowStockParts.push({
+			partName: cells[1].innerText,
+			partNumber: cells[2].innerText,
+			quantity: quantity  // only the number, not the innerHTML
+		  });
+		}
+
+		return lowStockParts;
+	  }, []);
+	}
 
     function getServiceItems() {
       const rows = document.querySelectorAll("#inventoryTable tbody tr");

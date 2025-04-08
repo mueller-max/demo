@@ -1,81 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Service List</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Service Selection</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background-color: #f5f5f5;
+      padding: 60px 20px;
+      margin: 0;
     }
+
     .container {
-      display: flex;
-      flex-direction: column;
+      max-width: 1000px;
       width: 100%;
-      max-width: 800px;
-      padding: 20px;
     }
+
+    .instructions {
+      font-size: 18px;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .service-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
     .service-tile {
       background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      width: 100%;
-      margin-bottom: 15px;
+      padding: 20px;
+      border: 2px solid #ddd;
+      border-radius: 12px;
+      width: calc(50% - 10px);
+      box-sizing: border-box;
+      position: relative;
+      min-height: 220px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
+
     .service-tile:hover {
-      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
+
     .service-tile.selected {
-      border: 3px solid blue;
-      box-shadow: 0 0 10px blue;
+      border-color: #0070F2;
     }
-    .service-details {
-      margin-top: 10px;
-      padding: 10px;
-      background-color: #eef;
-      border-left: 4px solid #00f;
-      border-radius: 5px;
+
+    .service-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .service-icon {
+      width: 40px;
+      height: 40px;
+      padding: 8px 8px 8px 0px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .service-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .service-name {
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .service-description {
+      font-size: 14px;
+      color: #333;
+    }
+
+    .meta-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .service-meta {
+      font-size: 14px;
+      color: #444;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .service-price {
+      font-weight: bold;
+      font-size: 18px;
+      margin-top: auto;
+    }
+
+    .service-footer {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+    }
+
+    .pill {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .selected .pill {
+      background-color: #0070F2;
+      color: white;
+    }
+
+    .unselected .pill {
+      background-color: transparent;
+      color: #777;
+    }
+
+    .checkbox {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #ccc;
+      border-radius: 4px;
+      position: relative;
+    }
+
+    .service-tile.selected .checkbox {
+      border-color: #0070F2;
+      background-color: #0070F2;
+    }
+
+    .checkbox::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 5px;
+      width: 4px;
+      height: 8px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+      display: none;
+    }
+
+    .service-tile.selected .checkbox::after {
+      display: block;
     }
   </style>
 </head>
+
 <body>
-  <div class="container" id="serviceContainer"></div>
+  <div class="container">
+    <div class="instructions">Click on the tiles to select one or more services.</div>
+    <div class="service-grid" id="serviceContainer"></div>
+  </div>
+
   <script>
-    // 1) Services with default prices
     const services = [
-      { target: "carservices", name: "Plus Service Package", durationHours: 1, price: "$300" },
-      { target: "carservices", name: "Standard Service Package", durationHours: 1, price: "$200" },
-      { target: "carservices", name: "Tire Alignment Check", durationHours: 1, price: "$50" },
-      { target: "carservices", name: "Motor Cleaning", durationHours: 1, price: "$80" },
-      { target: "carservices", name: "AC Check", durationHours: 1, price: "$60" },
-      { target: "carservices", name: "Oil Change", durationHours: 1, price: "$40" }
+      { target: "carservices", name: "Plus Service Package", description: "Complete vehicle inspection and maintenance.", durationHours: 1, price: "$300" },
+      { target: "carservices", name: "Standard Service Package", description: "Complete vehicle inspection and maintenance.", durationHours: 1, price: "$200" },
+      { target: "carservices", name: "Tire Alignment Check", description: "Check and alignment of tire angles.", durationHours: 1, price: "$50" },
+      { target: "carservices", name: "Motor Cleaning", description: "Detailed engine bay cleaning service.", durationHours: 1, price: "$80" },
+      { target: "carservices", name: "AC Check", description: "Air conditioning system check and refill.", durationHours: 1, price: "$60" },
+      { target: "carservices", name: "Oil Change", description: "Engine oil replacement with filter.", durationHours: 1, price: "$40" }
     ];
 
     const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
 
-    // 2) On page load, fetch the "pricecheck" data
-    // Expected response: e.g. [{"name": "Plus Service Package", "price": "FREE"}, ...]
     function loadPricesOnPageLoad() {
       return fetch(endpointUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ target: "pricecheck" })
       })
-      .then(response => {
-        if (!response.ok) throw new Error("Failed to fetch prices on init");
-        return response.json();
-      });
+        .then(response => {
+          if (!response.ok) throw new Error("Failed to fetch prices on init");
+          return response.json();
+        });
     }
 
-    // Helper: Convert an array of price objects to a mapping: { "Plus Service Package": "FREE", ... }
     function buildPriceMap(priceArray) {
       const priceMap = {};
       priceArray.forEach(pkg => {
@@ -84,40 +200,47 @@
       return priceMap;
     }
 
-    // 3) Create tiles using the updated price data
     function createServiceTiles(priceListArray) {
       const priceMap = buildPriceMap(priceListArray);
       const container = document.getElementById("serviceContainer");
       container.innerHTML = "";
 
       services.forEach(service => {
-        // Override price if found; fallback to the original numeric part (without $)
         const updatedPrice = priceMap[service.name] || service.price.replace('$', '');
         service.updatedPrice = updatedPrice;
 
-        // Build tile
         const tile = document.createElement("div");
-        tile.classList.add("service-tile");
-        tile.serviceData = service; // attach service data for later use
+        tile.classList.add("service-tile", "unselected");
+        tile.serviceData = service;
 
         tile.innerHTML = `
-          <strong>${service.name}</strong><br>
-          Duration: ${service.durationHours} hour${service.durationHours > 1 ? 's' : ''}<br>
-          Price: $${updatedPrice}
+          <div class="service-header">
+            <div style="display: flex; align-items: center;">
+              <div class="service-icon">
+                <img src="service_icon.svg" alt="screwdriver icon" />
+              </div>
+              <div class="service-name">${service.name}</div>
+            </div>
+            <div class="checkbox"></div>
+          </div>
+          <div class="service-description">${service.description}</div>
+          </br>
+          <div class="service-meta">
+            <img src="time_icon.svg" alt="Duration" class="meta-icon" />
+              Duration: ${service.durationHours} hour
+          </div>
+
+          <div class="service-price">$${updatedPrice}</div>
+          <div class="service-footer">
+            <div class="pill">Unselected</div>
+          </div>
         `;
 
-        // Hidden details area
-        const detailsDiv = document.createElement("div");
-        detailsDiv.classList.add("service-details");
-        detailsDiv.style.display = "none";
-        detailsDiv.innerHTML = `<em>Click tile to toggle selection.</em>`;
-        tile.appendChild(detailsDiv);
-
-        // On tile click: toggle selection without deselecting others
         tile.onclick = function () {
-          tile.classList.toggle('selected');
-          detailsDiv.style.display = tile.classList.contains('selected') ? 'block' : 'none';
-          // After toggling, send the currently selected services data
+          const isSelected = tile.classList.toggle("selected");
+          tile.classList.toggle("unselected", !isSelected);
+          const pill = tile.querySelector(".pill");
+          pill.textContent = isSelected ? "Selected" : "Unselected";
           sendSelectedServices();
         };
 
@@ -125,11 +248,10 @@
       });
     }
 
-    // 4) Gather all selected services and send them as JSON (wrapped in an object) to the endpoint
     function sendSelectedServices() {
       const selectedTiles = document.querySelectorAll('.service-tile.selected');
       const payloadArray = [];
-      
+
       selectedTiles.forEach(tile => {
         const service = tile.serviceData;
         payloadArray.push({
@@ -139,33 +261,26 @@
           price: service.updatedPrice
         });
       });
-      
-      // If no services are selected, do nothing
-      if (payloadArray.length === 0) {
-        return;
-      }
-      
-      // Wrap the array in an object so the JSON starts with { }
-      const finalPayload = { value: payloadArray };
-      
+
+      if (payloadArray.length === 0) return;
+
       fetch(endpointUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(finalPayload)
+        body: JSON.stringify(payloadArray)
       })
-      .then(response => {
-        if (!response.ok) throw new Error("Failed to send selected service data");
-        return response.json();
-      })
-      .then(data => {
-        console.log("Selected service data sent successfully:", data);
-      })
-      .catch(error => {
-        console.error("Error submitting selected services:", error);
-      });
+        .then(response => {
+          if (!response.ok) throw new Error("Failed to send selected service data");
+          return response.json();
+        })
+        .then(data => {
+          console.log("Selected service data sent successfully:", data);
+        })
+        .catch(error => {
+          console.error("Error submitting selected services:", error);
+        });
     }
 
-    // 5) Initialize page: fetch price data then create tiles
     function initPage() {
       loadPricesOnPageLoad()
         .then(priceList => {
@@ -178,8 +293,8 @@
         });
     }
 
-    // Run on page load
     initPage();
   </script>
 </body>
+
 </html>

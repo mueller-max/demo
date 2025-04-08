@@ -1,160 +1,297 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Car List</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Car Selection</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 60px 20px;
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background-color: #f5f5f5;
     }
 
     .container {
-      display: flex;
-      flex-direction: column;
+      max-width: 1000px;
       width: 100%;
-      max-width: 800px;
-      padding: 20px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #444;
+      margin: 30px 0 10px;
+    }
+
+    .car-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .car-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
     }
 
     .car-tile {
       background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      width: 100%;
-      margin-bottom: 15px;
+      border: 2px solid #ddd;
+      border-radius: 12px;
+      padding: 20px;
+      width: calc(50% - 10px);
+      box-sizing: border-box;
+      display: block;
+      justify-content: space-between;
+      align-items: flex-start;
+      position: relative;
+      min-height: 180px;
+      transition: border-color 0.2s;
     }
 
-    .car-tile:hover {
-      transform: scale(1.02);
+    .full-width {
+      width: 100%;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
     }
 
     .car-tile.selected {
-      border: 3px solid blue;
-      box-shadow: 0 0 10px blue;
+      border-color: #0070F2;
     }
 
-    .milestone-info {
-      margin-top: 10px;
-      padding: 10px;
-      background-color: #eef;
-      border-left: 4px solid #00f;
-      border-radius: 5px;
+    .car-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 14px;
+      color: #333;
     }
 
-    .milestone-reached {
-      color: #003366;
-      font-weight: bold;
+    .car-name {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .car-details .label {
+      font-weight: 500;
+      margin-right: 6px;
+    }
+
+    .car-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .warranty-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .warranty-badge.active {
+      background-color: #7EC316;
+      color: #1a431a;
+    }
+
+    .warranty-badge.inactive {
+      background-color: #e0e0e0;
+      color: #555;
+    }
+
+    .car-image {
+      width: 180px;
+      height: auto;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    .selection-pill {
+      position: absolute;
+      bottom: 14px;
+      right: 16px;
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+      background-color: transparent;
+    }
+
+    .car-tile.selected .selection-pill {
+      background-color: #0070F2;
+      color: white;
+    }
+
+    .car-tile:not(.selected) .selection-pill {
+      color: #777;
+    }
+
+    .radio-dot {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      background: white;
+    }
+
+    .car-tile.selected .radio-dot {
+      border-color: #0070F2;
+      background: #0070F2;
+    }
+
+    .radio-dot::after {
+      content: '';
+      display: none;
     }
   </style>
 </head>
+
 <body>
-  <div class="container" id="carContainer"></div>
+  <div class="container">
+    <h1>Select the vehicle you want to create the appointment for.</h1>
+    <h2>Samuel Monsour’s vehicles</h2>
+    <div class="car-grid" id="activeCars"></div>
+
+    <h2>Inactive vehicles</h2>
+    <div id="inactiveCars">
+      <p>There are no vehicles with inactive warranty for this client.</p>
+    </div>
+  </div>
 
   <script>
+
     const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
     let cars = [];
 
-    // 1) On page load, fetch array of cars
     function loadCars() {
       fetch(endpointUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ target: "cars" })
       })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Failed to load cars");
-        }
-        return response.json();
-      })
-      .then(data => {
-        cars = data;
-        createCarTiles();
-      })
-      .catch(error => {
-        console.error("Error:", error);
-        document.getElementById("carContainer").innerHTML =
-          `<p style="color:red;">Error loading cars: ${error.message}</p>`;
-      });
+        .then(response => {
+          if (!response.ok) throw new Error("Failed to load cars");
+          return response.json();
+        })
+        .then(data => {
+          cars = data;
+          renderCars();
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          document.getElementById("activeCars").innerHTML =
+            `<p style="color:red;">Error loading cars: ${error.message}</p>`;
+        });
     }
 
-    function createCarTiles() {
-      const container = document.getElementById("carContainer");
-      container.innerHTML = "";
+    function renderCars() {
+      const activeContainer = document.getElementById("activeCars");
+      const inactiveContainer = document.getElementById("inactiveCars");
+
+      activeContainer.innerHTML = "";
+      let inactiveCount = 0;
 
       cars.forEach(car => {
         const tile = document.createElement("div");
         tile.classList.add("car-tile");
+        if (car.warranty) {
+          activeContainer.appendChild(tile);
+        } else {
+          inactiveContainer.innerHTML = "";
+          inactiveContainer.appendChild(tile);
+          inactiveCount++;
+        }
 
-        // Basic info from the new JSON structure
+        const imageSrc = car.productName === "Toyota RAV 4"
+          ? "rav.png"
+          : car.productName === "Supra 2025"
+            ? "supra.png"
+            : "";
+        console.log("Product name:", car.productName);
         tile.innerHTML = `
-          <strong>${car.productName}</strong><br>
-          Product ID: ${car.registeredProductId}<br>
-          VIN: ${car.vin}<br>
-          Owner: ${car.ownerName}<br>
-          Status: ${car.status}<br>
-          Warranty Active: ${car.warranty ? "Yes" : "No"}
-        `;
+        <div class="car-header">
+          <div class="car-name">${car.productName}</div>
+          <div class="radio-dot"></div>
+        </div>
+        <div class="car-content">
+          <img src="${imageSrc}" alt="${car.productName}" class="car-image" />
+          <div class="car-info">
+            <div class="car-details">
+              <span class="label">Warranty status:</span>
+              <span class="warranty-badge ${car.warranty ? 'active' : 'inactive'}">
+                ${car.warranty ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+            <div class="car-details">
+              <span class="label">Product-ID:</span> #${car.registeredProductId}
+            </div>
+            <div class="car-details">
+              <span class="label">VIN:</span> ${car.vin}
+            </div>
+          </div>
+        </div>
+        <div class="selection-pill">Unselected</div>
+      `;
 
-        // We'll just keep a "more info" div, if you want it later
-        const detailDiv = document.createElement("div");
-        detailDiv.classList.add("milestone-info");
-        detailDiv.style.display = "none";
-        tile.appendChild(detailDiv);
 
-        tile.onclick = function () {
-          // Deselect others
+
+
+        tile.onclick = () => {
           document.querySelectorAll('.car-tile').forEach(t => {
             t.classList.remove('selected');
-            const info = t.querySelector('.milestone-info');
-            if (info) info.style.display = 'none';
+            t.querySelector('.selection-pill').textContent = "Unselected";
           });
 
-          tile.classList.add('selected');
+          tile.classList.add("selected");
+          tile.querySelector('.selection-pill').textContent = "Selected";
 
-          // Show detail (if needed)
-          detailDiv.innerHTML = `<strong>Additional Details:</strong><br>
-           <em>No extra date info in the new JSON</em>`;
-          detailDiv.style.display = "block";
-
-          // Example: POST selection to Worker
           fetch(endpointUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               target: "saveselectiondata",
-              carId: car.vin // unique ID
+              carId: car.vin
             })
           })
-          .then(res => {
-            if (!res.ok) {
-              throw new Error("Failed to save selection data");
-            }
-            return res.json();
-          })
-          .then(data => {
-            console.log("Selection saved:", data);
-          })
-          .catch(err => {
-            console.error("Error saving selection data:", err);
-          });
+            .then(res => {
+              if (!res.ok) throw new Error("Failed to save selection");
+              return res.json();
+            })
+            .then(data => {
+              console.log("Selection saved:", data);
+            })
+            .catch(err => {
+              console.error("Error saving selection:", err);
+            });
         };
-
-        container.appendChild(tile);
       });
+
+      if (inactiveCount === 0) {
+        inactiveContainer.innerHTML = `<p>There are no vehicles with inactive warranty for this client.</p>`;
+      }
     }
 
-    // 4) On page load, fetch cars
     loadCars();
   </script>
 </body>
+
 </html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Service Items</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #2196f3, #64b5f6);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #1976d2;
+      color: #fff;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    img {
+      width: 80px;
+      height: 80px;
+      border-radius: 5px;
+      object-fit: cover;
+    }
+    .total-container {
+      text-align: right;
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Service Items</h1>
+    <table id="inventoryTable">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Part Name</th>
+          <th>Part Number</th>
+          <th>Quantity</th>
+          <th>Price (SAR)</th>
+          <th>Total Price (SAR)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Inventory rows will be inserted here -->
+      </tbody>
+    </table>
+    <div class="total-container" id="grandTotal">Grand Total: SAR 0.00</div>
+  </div>
+
+  <script>
+    function randomQuantity() {
+      return Math.floor(Math.random() * 3) + 1;
+    }
+
+    const parts = [
+      { partName: "Brake Pads", partNumber: "10000041", quantity: randomQuantity(), price: 25.99, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Brake+Pads" },
+      { partName: "Oil Filter", partNumber: "10000031", quantity: randomQuantity(), price: 15.75, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Oil+Filter" },
+      { partName: "Air Filter", partNumber: "10000032", quantity: randomQuantity(), price: 18.50, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Air+Filter" },
+      { partName: "Spark Plugs", partNumber: "5003", quantity: randomQuantity(), price: 8.99, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Spark+Plugs" },
+      { partName: "Car Battery", partNumber: "10000042", quantity: randomQuantity(), price: 120.00, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Wiper" },
+      { partName: "Kitoil", partNumber: "5002", quantity: randomQuantity(), price: 22.00, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Headlight" },
+      { partName: "Pad KIT Disc Brake", partNumber: "5001", quantity: randomQuantity(), price: 34.50, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Battery" }
+    ];
+
+    function renderInventory() {
+      const tbody = document.querySelector("#inventoryTable tbody");
+      tbody.innerHTML = "";
+      let grandTotal = 0;
+
+      parts.forEach(part => {
+        const totalPrice = part.quantity * part.price;
+        grandTotal += totalPrice;
+        const row = `
+          <tr>
+            <td><img src="${part.imageUrl}" alt="${part.partName}"></td>
+            <td>${part.partName}</td>
+            <td>${part.partNumber}</td>
+            <td>${part.quantity}</td>
+            <td>SAR ${part.price.toFixed(2)}</td>
+            <td>SAR ${totalPrice.toFixed(2)}</td>
+          </tr>
+        `;
+        tbody.insertAdjacentHTML("beforeend", row);
+      });
+
+      document.getElementById("grandTotal").textContent = "Grand Total: SAR " + grandTotal.toFixed(2);
+    }
+
+    renderInventory();
+  </script>
+</body>
+</html>

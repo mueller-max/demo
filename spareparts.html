@@ -98,6 +98,8 @@
     <button id="orderButton">Order Out-of-Stock Parts</button>
   </div>
   <script>
+    const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
+  
     function randomQuantity() {
       return Math.floor(Math.random() * 7) + 1;
     }
@@ -154,6 +156,8 @@
             countSpan.innerText = currentCount - 1;
             stockCell.innerText = currentStock + 1;
           }
+		  const serviceItems = getServiceItems();
+		  saveServiceItems(serviceItems);
         });
 
         increaseBtn.addEventListener("click", (event) => {
@@ -164,6 +168,8 @@
             countSpan.innerText = currentCount + 1;
             stockCell.innerText = currentStock - 1;
           }
+		  const serviceItems = getServiceItems();
+		  saveServiceItems(serviceItems);
         });
       });
     }
@@ -181,9 +187,46 @@
       });
       return partsToOrder;
     }
+	
+	function getServiceItems() {
+      const selectedRows = document.querySelectorAll("#inventoryTable tbody tr");
+      const serviceItemData = [];
+      selectedRows.forEach(row => {
+        const cells = row.querySelectorAll("td");
+		if(cells[4].querySelector('.count').textContent > 0)
+		{
+			serviceItemData.push({
+			  target: "inventory",
+			  partName: cells[1].innerText,
+			  partNumber: cells[2].innerText,
+			  quantityServiceItem: cells[4].querySelector('.count').textContent
+			});
+		}
+      });
+      return serviceItemData;
+    }
+	
+	function saveServiceItems(serviceItemData) {
+		fetch(endpointUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value: serviceItemData })
+      })
+        .then(response => {
+          if (!response.ok) throw new Error("Failed to send service items");
+          return response.json();
+        })
+        .then(data => {
+          console.log("Service items sent successfully:", data);
+        })
+        .catch(error => {
+          console.error("Error submitting service items:", error);
+        });
+		
+		console.log(JSON.stringify({ value: serviceItemData }));
+	}
 
     function sendOrderRequest(orderData) {
-      const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
       const payload = {
         target: "spareparts",
         value: orderData

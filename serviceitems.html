@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Service Items</title>
-  <style>
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>Service Items</title>
+		<style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #2196f3, #64b5f6);
@@ -56,60 +56,77 @@
       margin-top: 10px;
     }
   </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Service Items</h1>
-    <table id="inventoryTable">
-      <thead>
-        <tr>
-          <th>Image</th>
-          <th>Part Name</th>
-          <th>Part Number</th>
-          <th>Quantity</th>
-          <th>Price (SAR)</th>
-          <th>Total Price (SAR)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Inventory rows will be inserted here -->
-      </tbody>
-    </table>
-    <div class="total-container" id="grandTotal">Grand Total: SAR 0.00</div>
-  </div>
+	</head>
+	<body>
+		<div class="container">
+			<h1>Service Items</h1>
+			<table id="inventoryTable">
+				<thead>
+					<tr>
+						<th>Image</th>
+						<th>Part Name</th>
+						<th>Part Number</th>
+						<th>Quantity</th>
+						<th>Price (SAR)</th>
+						<th>Total Price (SAR)</th>
+					</tr>
+				</thead>
+				<tbody>
+					<!-- Inventory rows will be inserted here -->
+				</tbody>
+			</table>
+			<div class="total-container" id="grandTotal">Grand Total: SAR 0.00</div>
+		</div>
+		<script>
+    const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
 
-  <script>
-    function randomQuantity() {
-      return Math.floor(Math.random() * 3) + 1;
+    let serviceItems = [];
+
+    function loadServiceItems() {
+      fetch(endpointUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target: "serviceitems" })
+      })
+        .then(response => {
+          if (!response.ok) throw new Error("Failed to load service items");
+          return response.json();
+        })
+        .then(data => {
+          serviceItems = data;
+          renderServiceItems();
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          document.querySelector("#inventoryTable tbody").innerHTML = `
+            <tr>
+				<td colspan="6" style="color: red;">Error loading service items: ${error.message}</td>
+			</tr>
+          `;
+        });
     }
 
-    const parts = [
-      { partName: "Brake Pads", partNumber: "10000041", quantity: randomQuantity(), price: 25.99, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Brake+Pads" },
-      { partName: "Oil Filter", partNumber: "10000031", quantity: randomQuantity(), price: 15.75, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Oil+Filter" },
-      { partName: "Air Filter", partNumber: "10000032", quantity: randomQuantity(), price: 18.50, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Air+Filter" },
-      { partName: "Spark Plugs", partNumber: "5003", quantity: randomQuantity(), price: 8.99, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Spark+Plugs" },
-      { partName: "Car Battery", partNumber: "10000042", quantity: randomQuantity(), price: 120.00, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Wiper" },
-      { partName: "Kitoil", partNumber: "5002", quantity: randomQuantity(), price: 22.00, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Headlight" },
-      { partName: "Pad KIT Disc Brake", partNumber: "5001", quantity: randomQuantity(), price: 34.50, imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Battery" }
-    ];
-
-    function renderInventory() {
+    function renderServiceItems() {
       const tbody = document.querySelector("#inventoryTable tbody");
       tbody.innerHTML = "";
       let grandTotal = 0;
 
-      parts.forEach(part => {
-        const totalPrice = part.quantity * part.price;
+      serviceItems.forEach(item => {
+        const quantity = parseInt(item.quantity);
+        const price = parseFloat(item.price);
+        const totalPrice = quantity * price;
         grandTotal += totalPrice;
+
         const row = `
           <tr>
-            <td><img src="${part.imageUrl}" alt="${part.partName}"></td>
-            <td>${part.partName}</td>
-            <td>${part.partNumber}</td>
-            <td>${part.quantity}</td>
-            <td>SAR ${part.price.toFixed(2)}</td>
-            <td>SAR ${totalPrice.toFixed(2)}</td>
-          </tr>
+				<td>
+					<img src="${item.imageUrl}" alt="${item.partName}"/>
+					<td>${item.partName}</td>
+					<td>${item.partNumber}</td>
+					<td>${quantity}</td>
+					<td>SAR ${price.toFixed(2)}</td>
+					<td>SAR ${totalPrice.toFixed(2)}</td>
+				</tr>
         `;
         tbody.insertAdjacentHTML("beforeend", row);
       });
@@ -117,7 +134,7 @@
       document.getElementById("grandTotal").textContent = "Grand Total: SAR " + grandTotal.toFixed(2);
     }
 
-    renderInventory();
+    loadServiceItems();
   </script>
-</body>
-</html>
+		</body>
+	</html>

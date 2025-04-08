@@ -1,60 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Car Parts Inventory</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #2196f3, #64b5f6);
       margin: 0;
       padding: 20px;
-      color: #333;
+      color: #353535;
     }
-    h1 {
-      text-align: center;
-      color: #fff;
+
+    h2 {
+      color: #353535;
       margin-bottom: 20px;
     }
+
     .container {
+      position: relative;
       background: #fff;
       border-radius: 10px;
-      padding: 20px;
+      padding: 20px 20px 80px 20px;
       max-width: 1000px;
       margin: 0 auto;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      color: #333;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      color: #353535;
     }
+
     table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 10px;
+      overflow: hidden;
       margin-bottom: 20px;
     }
-    th, td {
-      padding: 12px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
+
     th {
-      background-color: #1976d2;
-      color: #fff;
+      background-color: #f0f0f0;
+      color: #353535;
+      font-weight: 600;
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
     }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+    }
+
+    td:nth-child(2) {
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+
     tr.selected {
       background-color: #e3f2fd;
     }
-    tr:hover {
-      background-color: #f1f1f1;
-    }
+
     img {
       width: 80px;
       height: 80px;
       border-radius: 5px;
       object-fit: cover;
     }
+
     button {
       display: block;
-      background-color: #1976d2;
+      background-color: #0070F2;
       color: #fff;
       border: none;
       padding: 12px 20px;
@@ -63,24 +84,64 @@
       cursor: pointer;
       margin: 0 auto;
     }
+
     button:hover {
-      background-color: #1565c0;
+      background-color: #0070F2;
     }
+
     .service-items {
       display: flex;
       align-items: center;
       gap: 10px;
     }
+
+    .service-items-wrapper {
+      display: flex;
+      justify-content: center;
+      height: 100%;
+    }
+
     .service-items button {
       padding: 5px 10px;
       font-size: 16px;
       margin: 0;
     }
+
+    .fixed-order-button {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background-color: #0070F2;
+      color: #fff;
+      border: none;
+      padding: 14px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .fixed-order-button:hover {
+      background-color: #005ad4;
+    }
+
+    .low-stock-badge {
+      display: inline-block;
+      background-color: #f28b82;
+      color: white;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
   </style>
 </head>
+
 <body>
   <div class="container">
-    <h1>Car Parts Inventory</h1>
+    <h2>Car Parts Inventory</h2>
     <table id="inventoryTable">
       <thead>
         <tr>
@@ -95,23 +156,24 @@
         <!-- Inventory rows will be inserted here -->
       </tbody>
     </table>
-    <button id="orderButton">Order Out-of-Stock Parts</button>
+    <button id="orderButton" class="fixed-order-button">Order Out-of-Stock Parts</button>
   </div>
+
   <script>
     const endpointUrl = "https://broad-moon-472d.devin-mex.workers.dev/";
-  
+
     function randomQuantity() {
       return Math.floor(Math.random() * 7) + 1;
     }
 
     const parts = [
-      { partName: "Brake Pads", partNumber: "10000041", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Brake+Pads" },
-      { partName: "Oil Filter", partNumber: "10000031", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Oil+Filter" },
-      { partName: "Air Filter", partNumber: "10000032", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Air+Filter" },
-      { partName: "Spark Plugs", partNumber: "5003", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Spark+Plugs" },
-      { partName: "Car Battery", partNumber: "10000042", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Wiper" },
-      { partName: "Kitoil", partNumber: "5002", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Headlight" },
-      { partName: "Pad KIT Disc Brake", partNumber: "5001", quantity: randomQuantity(), imageUrl: "https://via.placeholder.com/80/007BFF/FFFFFF?text=Battery" },
+      { partName: "Brake Pads", partNumber: "10000041", quantity: randomQuantity(), imageUrl: "https://www.tateboys.com/wp-content/uploads/sites/16/2023/09/car-brakes-beside-brake-pads.jpg" },
+      { partName: "Oil Filter", partNumber: "10000031", quantity: randomQuantity(), imageUrl: "https://www.pgfilters.com/wp-content/uploads/2023/02/What-is-the-Oil-Filters-Primary-Job_-1000x675-1.jpg" },
+      { partName: "Air Filter", partNumber: "10000032", quantity: randomQuantity(), imageUrl: "https://www.quality-tuning.eu/images/stories/virtuemart/product/WS-002-1-simota-air-filter-(1).jpg" },
+      { partName: "Spark Plugs", partNumber: "5003", quantity: randomQuantity(), imageUrl: "https://www.cbac.com/images/blog/blog-17.5.jpg" },
+      { partName: "Car Battery", partNumber: "10000042", quantity: randomQuantity(), imageUrl: "https://i.ebayimg.com/images/g/EwkAAOSw84tkP~GB/s-l1200.jpg" },
+      { partName: "Kitoil", partNumber: "5002", quantity: randomQuantity(), imageUrl: "https://www.4-wheel-parts.de/images/product_images/original_images/99-5003eu.jpg" },
+      { partName: "Pad KIT Disc Brake", partNumber: "5001", quantity: randomQuantity(), imageUrl: "https://m.media-amazon.com/images/I/71sD9hQVMBL._AC_UF894,1000_QL80_.jpg" },
     ];
 
     function renderInventory() {
@@ -120,24 +182,26 @@
 
       parts.forEach(part => {
         const tr = document.createElement("tr");
+        const isLowStock = part.quantity < 4;
 
-        if (part.quantity < 4) {
-          tr.classList.add("selected");
-        }
-
-        tr.onclick = function () {
-          tr.classList.toggle("selected");
-        };
+        tr.onclick = () => tr.classList.toggle("selected");
 
         tr.innerHTML = `
           <td><img src="${part.imageUrl}" alt="${part.partName}"></td>
           <td>${part.partName}</td>
           <td>${part.partNumber}</td>
-          <td class="stock">${part.quantity}</td>
-          <td class="service-items">
-            <button class="decrease">-</button>
-            <span class="count">0</span>
-            <button class="increase">+</button>
+          <td class="stock">
+            ${part.quantity}
+            ${isLowStock ? '<span class="low-stock-badge">Low Stock</span>' : ''}
+          </td>
+          <td>
+            <div class="service-items-wrapper">
+              <div class="service-items">
+                <button class="decrease">-</button>
+                <span class="count">0</span>
+                <button class="increase">+</button>
+              </div>
+            </div>
           </td>
         `;
 
@@ -155,9 +219,8 @@
           if (currentCount > 0) {
             countSpan.innerText = currentCount - 1;
             stockCell.innerText = currentStock + 1;
+            saveServiceItems(getServiceItems());
           }
-		  const serviceItems = getServiceItems();
-		  saveServiceItems(serviceItems);
         });
 
         increaseBtn.addEventListener("click", (event) => {
@@ -167,89 +230,71 @@
           if (currentStock > 0) {
             countSpan.innerText = currentCount + 1;
             stockCell.innerText = currentStock - 1;
+            saveServiceItems(getServiceItems());
           }
-		  const serviceItems = getServiceItems();
-		  saveServiceItems(serviceItems);
         });
       });
     }
 
     function getPartsToOrder() {
       const selectedRows = document.querySelectorAll("#inventoryTable tbody tr.selected");
-      const partsToOrder = [];
-      selectedRows.forEach(row => {
+      return Array.from(selectedRows).map(row => {
         const cells = row.querySelectorAll("td");
-        partsToOrder.push({
+        return {
           partName: cells[1].innerText,
           partNumber: cells[2].innerText,
           quantity: cells[3].innerText
-        });
+        };
       });
-      return partsToOrder;
     }
-	
-	function getServiceItems() {
-      const selectedRows = document.querySelectorAll("#inventoryTable tbody tr");
-      const serviceItemData = [];
-      selectedRows.forEach(row => {
+
+    function getServiceItems() {
+      const rows = document.querySelectorAll("#inventoryTable tbody tr");
+      return Array.from(rows).map(row => {
         const cells = row.querySelectorAll("td");
-		if(cells[4].querySelector('.count').textContent > 0)
-		{
-			serviceItemData.push({
-			  target: "inventory",
-			  partName: cells[1].innerText,
-			  partNumber: cells[2].innerText,
-			  quantityServiceItem: cells[4].querySelector('.count').textContent
-			});
-		}
-      });
-      return serviceItemData;
+        const count = parseInt(cells[4].querySelector(".count").innerText);
+        if (count > 0) {
+          return {
+            target: "inventory",
+            partName: cells[1].innerText,
+            partNumber: cells[2].innerText,
+            quantityServiceItem: count
+          };
+        }
+      }).filter(Boolean);
     }
-	
-	function saveServiceItems(serviceItemData) {
-		fetch(endpointUrl, {
+
+    function saveServiceItems(serviceItemData) {
+      fetch(endpointUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ value: serviceItemData })
       })
-        .then(response => {
-          if (!response.ok) throw new Error("Failed to send service items");
-          return response.json();
+        .then(res => {
+          if (!res.ok) throw new Error("Failed to send service items");
+          return res.json();
         })
-        .then(data => {
-          console.log("Service items sent successfully:", data);
-        })
-        .catch(error => {
-          console.error("Error submitting service items:", error);
-        });
-		
-		console.log(JSON.stringify({ value: serviceItemData }));
-	}
+        .then(data => console.log("Service items sent:", data))
+        .catch(err => console.error("Error:", err));
+    }
 
     function sendOrderRequest(orderData) {
-      const payload = {
-        target: "spareparts",
-        value: orderData
-      };
-
       fetch(endpointUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ target: "spareparts", value: orderData })
       })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error("Failed to send order request");
-          }
-          return response.json();
+        .then(res => {
+          if (!res.ok) throw new Error("Failed to send order request");
+          return res.json();
         })
         .then(data => {
-          console.log("Order request sent successfully:", data);
+          console.log("Order sent:", data);
           alert("Order request sent successfully!");
         })
-        .catch(error => {
-          console.error("Error sending order request:", error);
-          alert("Error sending order request: " + error.message);
+        .catch(err => {
+          console.error("Order error:", err);
+          alert("Error sending order request: " + err.message);
         });
     }
 
@@ -265,4 +310,5 @@
     renderInventory();
   </script>
 </body>
+
 </html>

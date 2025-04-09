@@ -269,7 +269,8 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               target: "saveselectiondata",
-              carId: car.vin
+              carId: car.serialId,
+			  vin: car.vin
             })
           })
             .then(res => {
